@@ -1,0 +1,28 @@
+{
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "region": "{{ user `aws_region` }}",
+            "source_ami_filter": {
+                "filters": {
+                    "architecture": "x86_64",
+                    "name": "amzn2*",
+                    "virtualization-type": "hvm"
+                },
+                "owners": ["amazon"],
+                "most_recent": true
+            },
+            "instance_type": "t3.micro",
+            "ssh_username": "ec2-user",
+            "ami_name": "nginx-{{timestamp}}"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sudo amazon-linux-extras install nginx1 -y"
+            ]
+        }
+    ]
+}
