@@ -18,7 +18,7 @@ docker run \
 hashicorp/packer:light build app.json
 ```
 
-## Running Terraform
+## Running Terraform to deploy
 
 ```
 docker run \
@@ -35,7 +35,7 @@ docker run \
 -e AWS_SECRET_ACCESS_KEY \
 -e AWS_SESSION_TOKEN \
 -e AWS_DEFAULT_REGION \
-hashicorp/terraform:light plan
+hashicorp/terraform:light plan -input=false -out=tfplan
 
 docker run \
 -v $(pwd):/mnt -w /mnt/terraform \
@@ -43,5 +43,30 @@ docker run \
 -e AWS_SECRET_ACCESS_KEY \
 -e AWS_SESSION_TOKEN \
 -e AWS_DEFAULT_REGION \
-hashicorp/terraform:light apply
+hashicorp/terraform:light apply -input=false tfplan
+```
+
+## Removing resources
+
+```
+docker run \
+-v $(pwd):/mnt -w /mnt/terraform \
+-e AWS_ACCESS_KEY_ID \
+-e AWS_SECRET_ACCESS_KEY \
+-e AWS_SESSION_TOKEN \
+-e AWS_DEFAULT_REGION \
+hashicorp/terraform:light plan -input=false -destroy -out=tfplan
+
+docker run \
+-v $(pwd):/mnt -w /mnt/terraform \
+-e AWS_ACCESS_KEY_ID \
+-e AWS_SECRET_ACCESS_KEY \
+-e AWS_SESSION_TOKEN \
+-e AWS_DEFAULT_REGION \
+hashicorp/terraform:light apply -input=false tfplan
+
+for IMAGE_ID in $(aws ec2 describe-images --owners "self" --query 'Images[?name == "autoscaling-poc-*"].ImageId' --output text)
+do
+  aws ec2 deregister-image --image-id $IMAGE_ID
+done
 ```

@@ -13,7 +13,7 @@
             },
             "instance_type": "t3.micro",
             "ssh_username": "ec2-user",
-            "ami_name": "nginx-{{timestamp}}"
+            "ami_name": "autoscaling-poc-{{timestamp}}"
         }
     ],
     "provisioners": [

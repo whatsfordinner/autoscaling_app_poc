@@ -104,7 +104,7 @@ data "aws_ami" "app" {
 
   filter {
     name   = "name"
-    values = ["nginx-*"]
+    values = ["autoscaling-poc-*"]
   }
 }
 
