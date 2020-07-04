@@ -6,6 +6,8 @@ In this case, the application is being represented by nginx:
 * nginx config files represent application configuration  
 * static docs represent application code  
 
+Please be aware that this will deploy resources into your AWS account that will cost you money. Delete the resources *and* AMI(s) when you are finished.
+
 ## Running Packer to build the AMI
 
 ```
@@ -19,7 +21,6 @@ hashicorp/packer:light build app.json
 ```
 
 ## Running Terraform to deploy the app
-
 ```
 docker run \
 -v $(pwd):/mnt -w /mnt/terraform \
@@ -45,6 +46,8 @@ docker run \
 -e AWS_DEFAULT_REGION \
 hashicorp/terraform:light apply -input=false tfplan
 ```
+
+If you want to SSH onto instances to inspect them use System Manager Session Manager; the instance profile assigned to the instances in the autoscaling group all have the appropriate permissions.
 
 ## Removing resources when you're done
 
@@ -73,4 +76,4 @@ done
 
 ## Caveats
 
-None of this is what I would consider production-ready
+None of this is what I would consider production-ready: it is intended purely as a proof of concept for baking an AMI and then performing final configuration at start-time.
