@@ -5,3 +5,43 @@ This repo is a proof of concept for an application that runs in EC2 in an autosc
 In this case, the application is being represented by nginx:  
 * nginx config files represent application configuration  
 * static docs represent application code  
+
+## Running Packer
+
+```
+docker run \
+-v $(pwd):/mnt -w /mnt/packer \
+-e AWS_ACCESS_KEY_ID \
+-e AWS_SECRET_ACCESS_KEY \
+-e AWS_SESSION_TOKEN \
+-e AWS_DEFAULT_REGION \
+hashicorp/packer:light build app.json
+```
+
+## Running Terraform
+
+```
+docker run \
+-v $(pwd):/mnt -w /mnt/terraform \
+-e AWS_ACCESS_KEY_ID \
+-e AWS_SECRET_ACCESS_KEY \
+-e AWS_SESSION_TOKEN \
+-e AWS_DEFAULT_REGION \
+hashicorp/terraform:light init
+
+docker run \
+-v $(pwd):/mnt -w /mnt/terraform \
+-e AWS_ACCESS_KEY_ID \
+-e AWS_SECRET_ACCESS_KEY \
+-e AWS_SESSION_TOKEN \
+-e AWS_DEFAULT_REGION \
+hashicorp/terraform:light plan
+
+docker run \
+-v $(pwd):/mnt -w /mnt/terraform \
+-e AWS_ACCESS_KEY_ID \
+-e AWS_SECRET_ACCESS_KEY \
+-e AWS_SESSION_TOKEN \
+-e AWS_DEFAULT_REGION \
+hashicorp/terraform:light apply
+```
