@@ -85,11 +85,26 @@ resource "aws_autoscaling_group" "app" {
   max_size            = 2
   min_size            = 2
   vpc_zone_identifier = [aws_subnet.private.id]
+  health_check_type   = "ELB"
 
   launch_template {
     id      = aws_launch_template.app.id
     version = aws_launch_template.app.latest_version
   }
+
+  tags = [
+    {
+      key                 = "Name"
+      value               = "autoscaling-app-poc"
+      propagate_at_launch = true
+    }
+  ]
+}
+
+resource "aws_ssm_parameter" "app_asg" {
+  name  = "app-autoscaling-group-id"
+  type  = "String"
+  value = aws_autoscaling_group.app.id
 }
 
 resource "random_id" "bucket" {
@@ -142,4 +157,65 @@ resource "aws_iam_role_policy_attachment" "app_s3_access" {
   depends_on = [
     aws_iam_role.app
   ]
+}
+
+resource "aws_lb_target_group" "app" {
+  name     = "autoscaling-app-poc"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+
+  health_check {
+    enabled = true
+    path    = "/"
+    matcher = "200"
+  }
+}
+
+resource "aws_autoscaling_attachment" "app" {
+  autoscaling_group_name = aws_autoscaling_group.app.name
+  alb_target_group_arn   = aws_lb_target_group.app.arn
+}
+
+resource "aws_security_group" "alb_http" {
+  name        = "autoscaling-poc-alb"
+  description = "Allows HTTP traffic from the world"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTP from the world"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_lb" "app" {
+  name               = "autoscaling-poc"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.alb_http.id]
+  subnets = [
+    aws_subnet.public_a.id,
+    aws_subnet.public_b.id
+  ]
+}
+
+resource "aws_lb_listener" "app" {
+  load_balancer_arn = aws_lb.app.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.app.arn
+  }
 }
