@@ -20,7 +20,8 @@
         {
             "type": "shell",
             "inline": [
-                "sudo amazon-linux-extras install nginx1 -y"
+                "sudo amazon-linux-extras install nginx1 -y",
+                "sudo yum install jq -y"
             ]
         }
     ]
