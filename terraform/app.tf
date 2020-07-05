@@ -73,6 +73,7 @@ resource "aws_launch_template" "app" {
   image_id               = data.aws_ami.app.image_id
   instance_type          = "t3.micro"
   vpc_security_group_ids = [aws_security_group.app_http.id]
+  user_data              = filebase64("${path.module}/files/user-data.sh")
 
   iam_instance_profile {
     name = aws_iam_instance_profile.app.name
@@ -87,6 +88,58 @@ resource "aws_autoscaling_group" "app" {
 
   launch_template {
     id      = aws_launch_template.app.id
-    version = "$Latest"
+    version = aws_launch_template.app.latest_version
   }
+}
+
+resource "random_id" "bucket" {
+  byte_length = 4
+}
+
+resource "aws_s3_bucket" "app" {
+  bucket        = "asg-app-poc-${random_id.bucket.hex}"
+  acl           = "private"
+  force_destroy = true
+
+  tags = {
+    Name = "asg-app-poc"
+  }
+}
+
+resource "aws_ssm_parameter" "app_bucket" {
+  name  = "app-bucket-name"
+  type  = "String"
+  value = aws_s3_bucket.app.id
+}
+
+data "aws_iam_policy_document" "app_s3_access" {
+  statement {
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.app.arn]
+  }
+
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.app.arn}/*"]
+  }
+
+  statement {
+    actions   = ["ssm:GetParameter"]
+    resources = [aws_ssm_parameter.app_bucket.arn]
+  }
+}
+
+resource "aws_iam_policy" "app_s3_access" {
+  name        = "autoscaling-app-poc-s3-access"
+  description = "Policy that allows read-only access to the S3 bucket containing application code"
+  policy      = data.aws_iam_policy_document.app_s3_access.json
+}
+
+resource "aws_iam_role_policy_attachment" "app_s3_access" {
+  role       = aws_iam_role.app.name
+  policy_arn = aws_iam_policy.app_s3_access.arn
+
+  depends_on = [
+    aws_iam_role.app
+  ]
 }
