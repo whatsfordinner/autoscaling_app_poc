@@ -81,11 +81,12 @@ resource "aws_launch_template" "app" {
 }
 
 resource "aws_autoscaling_group" "app" {
-  name_prefix         = "autoscaling-poc-app"
-  max_size            = 2
-  min_size            = 2
-  vpc_zone_identifier = [aws_subnet.private.id]
-  health_check_type   = "ELB"
+  name_prefix               = "autoscaling-poc-app"
+  max_size                  = 2
+  min_size                  = 2
+  vpc_zone_identifier       = [aws_subnet.private.id]
+  health_check_type         = "ELB"
+  health_check_grace_period = 30
 
   launch_template {
     id      = aws_launch_template.app.id
