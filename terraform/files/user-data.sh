@@ -9,8 +9,11 @@ BUCKET=$(aws ssm get-parameter --name app-bucket-name --region $REGION --query '
 # Sync the contents of the bucket with our nginx config
 aws s3 sync s3://$BUCKET/config/ /etc/nginx
 
+# aws s3 sync doesn't like some of the symlinking going on in the default nginx directory
+rm -rf /usr/share/nginx/html/*
+
 # Sync the contents of the bucket with our static docs
-aws s3 sync s3://$BUCKET/content/ /usr/local
+aws s3 sync s3://$BUCKET/content/ /usr/share/nginx/html
 
 # Test to make sure nginx can start
 nginx -t

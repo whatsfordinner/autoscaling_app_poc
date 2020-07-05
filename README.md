@@ -8,6 +8,16 @@ In this case, the application is being represented by nginx:
 
 Please be aware that this will deploy resources into your AWS account that will cost you money. Delete the resources *and* AMI(s) when you are finished.
 
+## Prerequisites
+
+You'll need to export AWS credentials with read/write credentials to your environment:
+* `AWS_ACCESS_KEY_ID`  
+* `AWS_SECRET_ACCESS_KEY`  
+* `AWS_SESSION_TOKEN`  
+* `AWS_DEFAULT_REGION`  
+
+Easiest way to do this if you're using roles is with a tool like [awsume](https://github.com/trek10inc/awsume)
+
 ## Running Packer to build the AMI
 
 ```
@@ -48,6 +58,16 @@ hashicorp/terraform:light apply -input=false tfplan
 ```
 
 If you want to SSH onto instances to inspect them use System Manager Session Manager; the instance profile assigned to the instances in the autoscaling group all have the appropriate permissions.
+
+## Running a deployment
+
+Run the deploy script from inside of the `app` directory:
+
+```
+./deploy.sh
+```
+
+This will sync the contents of the directory with the S3 bucket created by Terraform and then run an autoscaling group refresh.
 
 ## Removing resources when you're done
 
