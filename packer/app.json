@@ -5,7 +5,7 @@
             "source_ami_filter": {
                 "filters": {
                     "architecture": "x86_64",
-                    "name": "amzn2*",
+                    "name": "amzn2-ami-hvm-*",
                     "virtualization-type": "hvm"
                 },
                 "owners": ["amazon"],
