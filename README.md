@@ -8,6 +8,8 @@ In this case, the application is being represented by nginx:
 
 Please be aware that this will deploy resources into your AWS account that will cost you money. Delete the resources *and* AMI(s) when you are finished.
 
+![Infrastructure Diagram](docs/infra_diagram.png)
+
 ## Prerequisites
 
 You'll need to export AWS credentials with read/write credentials to your environment:
@@ -17,6 +19,8 @@ You'll need to export AWS credentials with read/write credentials to your enviro
 * `AWS_DEFAULT_REGION`  
 
 Easiest way to do this if you're using roles is with a tool like [awsume](https://github.com/trek10inc/awsume)
+
+In order to run the deployment you'll need the latest version of the AWS CLI (which includes the `autoscaling start-instance-refresh` command) and `jq`.
 
 ## Running Packer to build the AMI
 
@@ -67,7 +71,7 @@ Run the deploy script from inside of the `app` directory:
 ./deploy.sh
 ```
 
-This will sync the contents of the directory with the S3 bucket created by Terraform and then run an autoscaling group refresh.
+This will sync the contents of the directory with the S3 bucket created by Terraform and then run an autoscaling group refresh. When a new instance starts, its user data will copy the content of the S3 bucket to the nginx configuration and documents directories, test that nginx is able to start correctly and then start nginx.
 
 ## Removing resources when you're done
 
